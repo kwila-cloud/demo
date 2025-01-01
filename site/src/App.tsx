@@ -1,12 +1,14 @@
 import { SignedIn, SignedOut, SignInButton, UserButton, useSession } from "@clerk/clerk-react";
 import './App.css';
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { API_URL } from "./constants";
+import useSQLite from "./hooks/useSQLite";
 
 
 export default function App() {
   const { isLoaded, session, isSignedIn } = useSession();
   const [apiResponse, setApiResponse] = useState('');
+  const { data, isLoading, error, runQuery, updateDB } = useSQLite();
 
   const requestFromApi = async () => {
     setApiResponse('');
@@ -45,6 +47,24 @@ export default function App() {
       setApiResponse(`Error calling API: ${error}`);
     }
   }
+  const content = useMemo(() => {
+    if (isLoading) {
+      return <div>Loading...</div>;
+    }
+    if (error) {
+      return <div className="text-red-500">{error}</div>;
+    }
+    if (data) {
+      if (Array.isArray(data)) {
+        return (
+          <pre>
+          {JSON.stringify(data, null, 2)}
+          </pre>
+        );
+      }
+      return <div>{data}</div>;
+    }
+  }, [data, isLoading]);
 
   return (<>
     <header>
@@ -71,5 +91,26 @@ export default function App() {
     <pre>
       {apiResponse}
     </pre>
+      <div >
+        <input
+          type="file"
+          accept=".sqlite3,.db,.sqlite"
+          onChange={(e) => {
+            updateDB(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+        <button
+          onClick={() =>
+            runQuery("SELECT * FROM sqlite_master WHERE type='table';")
+            // Use table_info to get column metadata for a specific table.
+            // runQuery("PRAGMA table_info(Employee);")
+          }
+        >
+          List Tables
+        </button>
+      </div>
+
+      <div className="w-full">{content}</div>
   </>);
 }

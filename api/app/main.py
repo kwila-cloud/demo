@@ -18,6 +18,7 @@ app.add_middleware(
 
 
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
+print('secret key:', CLERK_SECRET_KEY)
 clerk_client = Clerk(bearer_auth=CLERK_SECRET_KEY)
 
 @app.get("/")

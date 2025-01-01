@@ -20,7 +20,7 @@ export default function App() {
     <SignedIn>
       {/* TODO: show sql viewer here */}
       <p>
-        You are signed in!
+        You are signed in. List page coming soon!
       </p>
     </SignedIn>
   </>);

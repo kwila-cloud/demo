@@ -11,6 +11,9 @@ importers:
       '@clerk/clerk-react':
         specifier: ^5.21.0
         version: 5.21.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@clerk/themes':
+        specifier: ^2.2.3
+        version: 2.2.3
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -158,6 +161,10 @@ packages:
         optional: true
       react-dom:
         optional: true
+
+  '@clerk/themes@2.2.3':
+    resolution: {integrity: sha512-pDA5P9IUTLVKYviEtm7BgB+1rcJINDuP9F4LJ5ZH3f/6+LdG09EaVM/9nvGLnNqDJ7XvldzcKes1BpPJuGSCew==}
+    engines: {node: '>=18.17.0'}
 
   '@clerk/types@4.40.0':
     resolution: {integrity: sha512-9QdllXYujsjYLbvPg9Kq1rWOemX5FB0r6Ijy8HOxwjKN+TPlxUnGcs+t7IwU+M5gdmZ2KV6aA6d1a2q2FlSoiA==}
@@ -1678,6 +1685,11 @@ snapshots:
     optionalDependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+
+  '@clerk/themes@2.2.3':
+    dependencies:
+      '@clerk/types': 4.40.0
+      tslib: 2.4.1
 
   '@clerk/types@4.40.0':
     dependencies:

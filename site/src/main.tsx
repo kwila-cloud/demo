@@ -17,7 +17,13 @@ const rootElement = document.getElementById('root')!;
 
 createRoot(rootElement).render(
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} appearance={{baseTheme: dark}}>
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY} 
+      appearance={{
+         baseTheme: dark,
+         variables: { colorPrimary: "#A04131" }
+       }}
+      >
       <App />
     </ClerkProvider>
   </StrictMode>,

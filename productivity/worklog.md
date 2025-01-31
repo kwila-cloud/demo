@@ -10,6 +10,6 @@
 
 ## 2025-01-31
 
-1.5 hrs
+2 hrs
 
 - Updated README with instructions for running locally

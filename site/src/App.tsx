@@ -12,6 +12,7 @@ export default function App() {
   const fileInputRef = useRef(null);
   const [tablesList, setTablesList] = useState([]);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [tableData, setTableData] = useState([]);
 
   const requestFromApi = async () => {
     setApiResponse('');
@@ -66,11 +67,9 @@ export default function App() {
     // Use table_info to get column metadata for a specific table.
     const tableInfo = await runQuery(`PRAGMA table_info(${tableName});`)
     console.log(tableInfo);
-    // TODO: load contents
-    const tableData = await runQuery(`SELECT * FROM ${tableName};`)
-    console.log(tableData);
+    setTableData(await runQuery(`SELECT * FROM "${tableName}";`) as never[]);
 
-    
+
     setSelectedTable(tableName);
   }
 
@@ -90,52 +89,48 @@ export default function App() {
       </SignedIn>
     </header>
     <SignedIn>
-      {/* TODO: show sql viewer here */}
-      <p>
-        You are signed in. List page coming soon!
-      </p>
+      <div >
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".sqlite3,.db,.sqlite"
+          style={{ display: 'none' }}
+          onChange={async (e) => {
+            await updateDB(e.target.files?.[0]);
+            e.target.value = "";
+
+            await loadTables();
+          }}
+        />
+        <button onClick={() => fileInputRef.current.click()}>Choose File</button>
+        {
+          tablesList.length > 0 &&
+          <select value={selectedTable ?? ''} onChange={(e) => {
+            console.log(e);
+            loadTable(e.target.value);
+          }}>
+            <option value=''>Select a table</option>
+            {tablesList.map((name) =>
+              <option key={name} value={name}>
+                {name}
+              </option>)}
+          </select>
+        }
+      </div>
       {
         isLoading ?
           <p>loading...</p>
           :
-          <p>DATA WILL BE HERE</p>
+          <pre>{JSON.stringify(tableData, null, 2)}</pre>
       }
     </SignedIn>
     {
       /*
          <button onClick={requestFromApi}>Test API</button>
-      */
-    }
     <pre>
       {apiResponse}
     </pre>
-    <div >
-      <input
-        type="file"
-        ref={fileInputRef}
-        accept=".sqlite3,.db,.sqlite"
-        style={{ display: 'none' }}
-        onChange={async (e) => {
-          await updateDB(e.target.files?.[0]);
-          e.target.value = "";
-
-          await loadTables();
-        }}
-      />
-      <button onClick={() => fileInputRef.current.click()}>Choose File</button>
-      {
-        tablesList.length > 0 &&
-        <select value={selectedTable ?? ''} onChange={(e) => {
-          console.log(e);
-          loadTable(e.target.value);
-        }}>
-          <option value=''>Select a table</option>
-          {tablesList.map((name) =>
-            <option key={name} value={name}>
-              {name}
-            </option>)}
-        </select>
-      }
-    </div>
+      */
+    }
   </>);
 }

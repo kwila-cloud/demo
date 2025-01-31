@@ -1,2 +1,4 @@
 (A) display data from SQLite file in browser
+display data in table form
+get sqlite file from API
 allow adding new items

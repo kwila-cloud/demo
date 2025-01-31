@@ -1,35 +1,29 @@
 /**
- * @author Yash Janoria <yash.janoria@314ecorp.com>
- * @description Hook for
+ * This file is orginally from https://github.com/Yash2412/sqlite-react
  */
 
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 
 const worker = new Worker("/worker.js", { type: "module" });
 
 const useSQLite = () => {
-  const [data, setData] = useState<Record<string, any>[] | string>();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState();
-
-  useEffect(() => {
-    worker.onmessage = (e) => {
-      if (e.data.type === "loading") {
-        setIsLoading(true);
-        setError(undefined);
-      } else if (e.data.type === "success") {
-        setIsLoading(false);
-        setError(undefined);
-        setData(e.data.payload);
-      } else if (e.data.type === "error") {
-        setIsLoading(false);
-        setError(e.data.payload);
-      }
-    };
-  }, []);
 
   const runQuery = (query: string) => {
-    worker.postMessage({ type: "runQuery", query });
+    return new Promise((resolve, reject) => {
+      const handleMessage = (e) => {
+        setIsLoading(e.data.type === "loading");
+        if (e.data.type === "success") {
+          worker.removeEventListener("message", handleMessage);
+          resolve(e.data.payload);
+        } else if (e.data.type === "error") {
+          worker.removeEventListener("message", handleMessage);
+          reject(e.data.payload);
+        }
+      }
+      worker.addEventListener("message", handleMessage);
+      worker.postMessage({ type: "runQuery", query });
+    });
   };
 
   const saveFileInOPFS = async (file: File) => {
@@ -41,20 +35,34 @@ const useSQLite = () => {
   };
 
   const updateDB = (db?: File) => {
-    if (db) {
-      setIsLoading(true);
-      saveFileInOPFS(db)
-        .then(() => {
-          worker.postMessage({ type: "changeDB", dbName: db.name });
-        })
-        .catch((e) => setError(e));
-    }
+    return new Promise<void>((resolve, reject) => {
+      if (db) {
+        setIsLoading(true);
+        saveFileInOPFS(db)
+          .then(() => {
+            const handleMessage = (e) => {
+              setIsLoading(e.data.type === "loading");
+              if (e.data.type === "success") {
+                worker.removeEventListener("message", handleMessage);
+                resolve(e.data.payload);
+              } else if (e.data.type === "error") {
+                worker.removeEventListener("message", handleMessage);
+                reject(e.data.payload);
+              }
+            };
+            worker.addEventListener("message", handleMessage);
+            worker.postMessage({ type: "changeDB", dbName: db.name });
+          })
+          .catch((e) => {
+            setIsLoading(false);
+            reject(e);
+          });
+      }
+    })
   };
 
   return {
     isLoading,
-    data,
-    error,
     runQuery,
     updateDB,
   };

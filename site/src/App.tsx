@@ -1,6 +1,6 @@
 import { SignedIn, SignedOut, SignInButton, UserButton, useSession } from "@clerk/clerk-react";
 import './App.css';
-import { useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import { API_URL } from "./constants";
 import useSQLite from "./hooks/useSQLite";
 
@@ -8,7 +8,10 @@ import useSQLite from "./hooks/useSQLite";
 export default function App() {
   const { isLoaded, session, isSignedIn } = useSession();
   const [apiResponse, setApiResponse] = useState('');
-  const { data, isLoading, error, runQuery, updateDB } = useSQLite();
+  const { isLoading, runQuery, updateDB } = useSQLite();
+  const fileInputRef = useRef(null);
+  const [tablesList, setTablesList] = useState([]);
+  const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
   const requestFromApi = async () => {
     setApiResponse('');
@@ -47,24 +50,29 @@ export default function App() {
       setApiResponse(`Error calling API: ${error}`);
     }
   }
-  const content = useMemo(() => {
-    if (isLoading) {
-      return <div>Loading...</div>;
+
+  const loadTables = async () => {
+    const results = await runQuery("SELECT * FROM sqlite_master WHERE type='table';");
+    const tableNames = results.map(({ name }) => name);
+    setTablesList(tableNames);
+    if (tableNames.length > 0) {
+      await loadTable(tableNames[0]);
     }
-    if (error) {
-      return <div className="text-red-500">{error}</div>;
-    }
-    if (data) {
-      if (Array.isArray(data)) {
-        return (
-          <pre>
-          {JSON.stringify(data, null, 2)}
-          </pre>
-        );
-      }
-      return <div>{data}</div>;
-    }
-  }, [data, isLoading]);
+
+  }
+
+  const loadTable = async (tableName) => {
+    console.log('load table:', tableName);
+    // Use table_info to get column metadata for a specific table.
+    const tableInfo = await runQuery(`PRAGMA table_info(${tableName});`)
+    console.log(tableInfo);
+    // TODO: load contents
+    const tableData = await runQuery(`SELECT * FROM ${tableName};`)
+    console.log(tableData);
+
+    
+    setSelectedTable(tableName);
+  }
 
   return (<>
     <header>
@@ -86,31 +94,48 @@ export default function App() {
       <p>
         You are signed in. List page coming soon!
       </p>
+      {
+        isLoading ?
+          <p>loading...</p>
+          :
+          <p>DATA WILL BE HERE</p>
+      }
     </SignedIn>
-    <button onClick={requestFromApi}>Test API</button>
+    {
+      /*
+         <button onClick={requestFromApi}>Test API</button>
+      */
+    }
     <pre>
       {apiResponse}
     </pre>
-      <div >
-        <input
-          type="file"
-          accept=".sqlite3,.db,.sqlite"
-          onChange={(e) => {
-            updateDB(e.target.files?.[0]);
-            e.target.value = "";
-          }}
-        />
-        <button
-          onClick={() =>
-            runQuery("SELECT * FROM sqlite_master WHERE type='table';")
-            // Use table_info to get column metadata for a specific table.
-            // runQuery("PRAGMA table_info(Employee);")
-          }
-        >
-          List Tables
-        </button>
-      </div>
+    <div >
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept=".sqlite3,.db,.sqlite"
+        style={{ display: 'none' }}
+        onChange={async (e) => {
+          await updateDB(e.target.files?.[0]);
+          e.target.value = "";
 
-      <div className="w-full">{content}</div>
+          await loadTables();
+        }}
+      />
+      <button onClick={() => fileInputRef.current.click()}>Choose File</button>
+      {
+        tablesList.length > 0 &&
+        <select value={selectedTable ?? ''} onChange={(e) => {
+          console.log(e);
+          loadTable(e.target.value);
+        }}>
+          <option value=''>Select a table</option>
+          {tablesList.map((name) =>
+            <option key={name} value={name}>
+              {name}
+            </option>)}
+        </select>
+      }
+    </div>
   </>);
 }

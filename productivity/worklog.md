@@ -10,6 +10,6 @@
 
 ## 2025-01-31
 
-Started at 10:20
+1.5 hrs
 
 - Updated README with instructions for running locally

@@ -1,0 +1,2 @@
+(A) display data from SQLite file in browser
+allow adding new items

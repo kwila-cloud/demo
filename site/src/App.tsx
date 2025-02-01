@@ -1,59 +1,59 @@
-import { SignedIn, SignedOut, SignInButton, UserButton, useSession } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignInButton, UserButton, } from "@clerk/clerk-react";
 import './App.css';
 import { useRef, useState } from "react";
-import { API_URL } from "./constants";
+// import { API_URL } from "./constants";
 import useSQLite from "./hooks/useSQLite";
 
 
 export default function App() {
-  const { isLoaded, session, isSignedIn } = useSession();
-  const [apiResponse, setApiResponse] = useState('');
+  // const { isLoaded, session, isSignedIn } = useSession();
+  // const [apiResponse, setApiResponse] = useState('');
   const { isLoading, runQuery, updateDB } = useSQLite();
-  const fileInputRef = useRef(null);
-  const [tablesList, setTablesList] = useState([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tablesList, setTablesList] = useState<string[]>([]);
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [tableData, setTableData] = useState([]);
 
-  const requestFromApi = async () => {
-    setApiResponse('');
+  // const requestFromApi = async () => {
+  //   setApiResponse('');
 
-    console.log('Is loaded:', isLoaded);
-    console.log('Is signed in:', isSignedIn);
-    if (!session) {
-      console.log('No session!');
-      setApiResponse('User is not signed in!');
-      return;
-    }
-    console.log('Session ID:', session.id);
-    console.log('User ID:', session.user.id);
-    console.log('Session Expires At:', session.expireAt);
+  //   console.log('Is loaded:', isLoaded);
+  //   console.log('Is signed in:', isSignedIn);
+  //   if (!session) {
+  //     console.log('No session!');
+  //     setApiResponse('User is not signed in!');
+  //     return;
+  //   }
+  //   console.log('Session ID:', session.id);
+  //   console.log('User ID:', session.user.id);
+  //   console.log('Session Expires At:', session.expireAt);
 
-    // Get the session token for API authentication
-    const sessionToken = await session.getToken();
+  //   // Get the session token for API authentication
+  //   const sessionToken = await session.getToken();
 
-    console.log('Session Token:', sessionToken);
+  //   console.log('Session Token:', sessionToken);
 
-    try {
-      // Make a request to the protected backend route
-      const response = await fetch(`${API_URL}/protected?session_id=${session.id}`, {
-        headers: {
-          'Authorization': `Bearer ${sessionToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
+  //   try {
+  //     // Make a request to the protected backend route
+  //     const response = await fetch(`${API_URL}/protected?session_id=${session.id}`, {
+  //       headers: {
+  //         'Authorization': `Bearer ${sessionToken}`,
+  //         'Content-Type': 'application/json',
+  //       },
+  //     });
 
-      const data = await response.json();
-      console.log('API Response:', data['message']);
-      // Display the API response on the page
-      setApiResponse(`FASTAPI Response: ${JSON.stringify(data['message'])}`);
-    } catch (error) {
-      console.error('Error calling API:', error);
-      setApiResponse(`Error calling API: ${error}`);
-    }
-  }
+  //     const data = await response.json();
+  //     console.log('API Response:', data['message']);
+  //     // Display the API response on the page
+  //     setApiResponse(`FASTAPI Response: ${JSON.stringify(data['message'])}`);
+  //   } catch (error) {
+  //     console.error('Error calling API:', error);
+  //     setApiResponse(`Error calling API: ${error}`);
+  //   }
+  // }
 
   const loadTables = async () => {
-    const results = await runQuery("SELECT * FROM sqlite_master WHERE type='table';");
+    const results = await runQuery("SELECT * FROM sqlite_master WHERE type='table';") as {name: string}[];
     const tableNames = results.map(({ name }) => name);
     setTablesList(tableNames);
     if (tableNames.length > 0) {
@@ -62,7 +62,7 @@ export default function App() {
 
   }
 
-  const loadTable = async (tableName) => {
+  const loadTable = async (tableName: string) => {
     console.log('load table:', tableName);
     // Use table_info to get column metadata for a specific table.
     const tableInfo = await runQuery(`PRAGMA table_info(${tableName});`)
@@ -102,7 +102,12 @@ export default function App() {
             await loadTables();
           }}
         />
-        <button onClick={() => fileInputRef.current.click()}>Choose File</button>
+        <button onClick={() => {
+          if (fileInputRef.current){
+            
+                  fileInputRef.current.click();
+          }
+              }}>Choose File</button>
         {
           tablesList.length > 0 &&
           <select value={selectedTable ?? ''} onChange={(e) => {

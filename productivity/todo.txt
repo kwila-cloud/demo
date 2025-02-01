@@ -1,4 +1,4 @@
-(A) display data from SQLite file in browser
-display data in table form
-get sqlite file from API
-allow adding new items
+(A) fetch sqlite DB from the API (use the user ID to save unique DBs in CloudFlare R2)
+(B) display data in table form
+(E) allow downloading as XLSX
+(F) allow adding new items

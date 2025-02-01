@@ -11,7 +11,7 @@ const useSQLite = () => {
 
   const runQuery = (query: string) => {
     return new Promise((resolve, reject) => {
-      const handleMessage = (e) => {
+      const handleMessage = (e: MessageEvent) => {
         setIsLoading(e.data.type === "loading");
         if (e.data.type === "success") {
           worker.removeEventListener("message", handleMessage);
@@ -40,7 +40,7 @@ const useSQLite = () => {
         setIsLoading(true);
         saveFileInOPFS(db)
           .then(() => {
-            const handleMessage = (e) => {
+            const handleMessage = (e: MessageEvent) => {
               setIsLoading(e.data.type === "loading");
               if (e.data.type === "success") {
                 worker.removeEventListener("message", handleMessage);

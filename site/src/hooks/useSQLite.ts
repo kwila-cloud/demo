@@ -3,8 +3,9 @@
  */
 
 import {  useState } from "react";
+import Worker from './worker.js?worker';
 
-const worker = new Worker("/worker.js", { type: "module" });
+const worker = new Worker();
 
 const useSQLite = () => {
   const [isLoading, setIsLoading] = useState(false);

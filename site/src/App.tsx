@@ -53,13 +53,12 @@ export default function App() {
   // }
 
   const loadTables = async () => {
-    const results = await runQuery("SELECT * FROM sqlite_master WHERE type='table';") as {name: string}[];
+    const results = await runQuery("SELECT * FROM sqlite_master WHERE type='table';") as { name: string }[];
     const tableNames = results.map(({ name }) => name);
     setTablesList(tableNames);
     if (tableNames.length > 0) {
       await loadTable(tableNames[0]);
     }
-
   }
 
   const loadTable = async (tableName: string) => {
@@ -96,18 +95,20 @@ export default function App() {
           accept=".sqlite3,.db,.sqlite"
           style={{ display: 'none' }}
           onChange={async (e) => {
+            console.log('loading DB...');
             await updateDB(e.target.files?.[0]);
             e.target.value = "";
 
+            console.log('loading tables...');
             await loadTables();
+            console.log('done loading tables!');
           }}
         />
         <button onClick={() => {
-          if (fileInputRef.current){
-            
-                  fileInputRef.current.click();
+          if (fileInputRef.current) {
+            fileInputRef.current.click();
           }
-              }}>Choose File</button>
+        }}>Choose File</button>
         {
           tablesList.length > 0 &&
           <select value={selectedTable ?? ''} onChange={(e) => {

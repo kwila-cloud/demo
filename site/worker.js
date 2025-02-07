@@ -1,6 +1,8 @@
 // In `worker.js`.
 import sqlite3InitModule from "@sqlite.org/sqlite-wasm";
 
+console.log('hello from worker.js!');
+
 const log = (type, payload) => postMessage({ type, payload });
 const error = (args) => postMessage({ type: "error", payload: args.join(" ") });
 

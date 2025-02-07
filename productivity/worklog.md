@@ -13,3 +13,10 @@
 2 hrs
 
 - Updated README with instructions for running locally
+- Added basic logic for loading data from tables
+
+## 2025-02-07
+
+0.5 hrs
+
+- Got web worker to load correctly on production

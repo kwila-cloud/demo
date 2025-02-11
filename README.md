@@ -12,8 +12,15 @@ The backend is hosted at [api.demo.kwila.cloud](https://api.demo.kwila.cloud).
 
 1. Create a `.env.local` file with
    ```
+   # Required for authentication
    CLERK_SECRET_KEY=<SECRET_KEY_HERE>
+   
+   # Required for Cloudflare R2 storage
+   R2_ACCOUNT_ID=<YOUR_R2_ACCOUNT_ID>
+   R2_ACCESS_KEY=<YOUR_R2_ACCESS_KEY>
+   R2_SECRET_KEY=<YOUR_R2_SECRET_KEY>
    ```
+   Note: The R2 credentials are required for database file storage functionality
 2. Run `docker build . -t kwila-demo-api`
 3. Run `docker run -p 80:80 --env-file .env.local kwila-demo-api:latest`
 

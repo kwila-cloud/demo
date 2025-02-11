@@ -17,9 +17,22 @@ app.add_middleware(
 )
 
 
+load_dotenv()
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
-print('secret key:', CLERK_SECRET_KEY)
+R2_ACCOUNT_ID = os.getenv("R2_ACCOUNT_ID")
+R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY")
+R2_SECRET_KEY = os.getenv("R2_SECRET_KEY")
+
 clerk_client = Clerk(bearer_auth=CLERK_SECRET_KEY)
+
+# Configure R2 S3 client
+s3 = boto3.client(
+    's3',
+    endpoint_url=f'https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com',
+    aws_access_key_id=R2_ACCESS_KEY,
+    aws_secret_access_key=R2_SECRET_KEY,
+    region_name='auto'
+)
 
 @app.get("/")
 def read_root():
@@ -87,8 +100,37 @@ async def protected_route(user=Depends(get_current_user)):
     # Return a personalized message using the user's first name
     return {
         "message": f"Hello, {user_details[0].first_name}!",
-        # Uncomment the following lines if you want to include more user details in the response
-        # "user_id": user_details[0].user_id,
-        # "email": user_details[0].email_addresses[0].email_address if user_details[0].email_addresses else None,
+        "org_id": user_details[0].public_metadata.get("org_id")
     }
+
+@app.get("/organizations/{org_id}/database")
+async def download_org_database(org_id: str, user=Depends(get_current_user)):
+    """Generate a pre-signed download URL for the organization's SQLite database"""
+    # Verify user belongs to the requested organization
+    user_details = clerk_client.users.list(user_id=[user.user_id])
+    user_org_id = user_details[0].public_metadata.get("org_id")
+    
+    if user_org_id != org_id:
+        raise HTTPException(
+            status_code=403, 
+            detail="You don't have permission to access this organization's database"
+        )
+    
+    # Generate presigned URL for the SQLite file in R2
+    try:
+        url = s3.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={
+                'Bucket': 'organization-databases',
+                'Key': f"{org_id}.sqlite"
+            },
+            ExpiresIn=3600  # 1 hour expiration
+        )
+        return {"download_url": url}
+    except Exception as e:
+        print(f"Error generating presigned URL: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to generate download URL"
+        )
                             
